@@ -1,0 +1,23 @@
+{
+    "name": "aminoapps.js",
+    "api": {
+
+        "url": "https://service.narvii.com/api/v1"
+    },
+    "strings": {
+        "computer": {
+            "ok": 200,
+            "danger": 199,
+            "warning": 199
+        },
+        "human": {
+            "ok": "success",
+            "danger": "danger",
+            "warning": "warning"
+        },
+        "copyright": {
+            "icon": "©",
+            "text": "wezacon.com"
+        }
+    }
+}

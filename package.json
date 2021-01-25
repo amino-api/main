@@ -1,0 +1,22 @@
+{
+  "name": "aminoapps.js",
+  "version": "0.0.1",
+  "description": "An api wrapper for aminoapps.com",
+  "main": "inc.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": "amino-api/main",
+  "keywords": [
+    "aminoapps",
+    "amino",
+    "api",
+    "bots"
+  ],
+  "author": "Seer#6054",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "node-fetch": "^2.6.1"
+  }
+}
