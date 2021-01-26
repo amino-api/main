@@ -1,6 +1,6 @@
 {
   "name": "aminoapps.js",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "An api wrapper for aminoapps.com",
   "main": "inc.js",
   "scripts": {
@@ -17,6 +17,7 @@
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.0",
+    "fs": "0.0.1-security",
     "node-fetch": "^2.6.1"
   }
 }
