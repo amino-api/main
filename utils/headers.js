@@ -1,8 +1,8 @@
-const deviceId = "01B592EF5658F82E1339B39AA893FF661D7E8B8F1D16227E396EF4B1BF60F33D25566A35AB1514DAB5";
-
-
 const fs = require('fs');
 const db = require('./db.json');
+const deviceFile = require('../device.json');
+
+const deviceId = deviceFile.key;
 /**
  * 
  * @param {string} data Return data
@@ -11,7 +11,6 @@ const db = require('./db.json');
  */
 
 module.exports = function(data, specialId){
-    console.log(specialId)
     let headers;
     if(db[specialId]){
         headers = {

@@ -5,10 +5,10 @@ const fetch = require('node-fetch');
 const system = require('./system.json');
 const header = require('./utils/headers');
 const chalk = require('chalk');
-const pkg = require('./package.json');
+const deviceFile = require('./device.json');
 
 
-const deviceId = "01B592EF5658F82E1339B39AA893FF661D7E8B8F1D16227E396EF4B1BF60F33D25566A35AB1514DAB5";
+const deviceId = deviceFile.key;
 const apiUrl = system.api.url;
 const clientVersion = pkg.version;
 
@@ -19,8 +19,8 @@ class Client {
      * @param {boolean} debug Enable debug mode.
      */
     constructor(specialId, debug){
-        this.debug = debug;
         this.specialId = specialId;
+        this.debug = debug;
     }
 
     /**
@@ -101,6 +101,14 @@ class Client {
                     header(JSON.stringify(postData), data.sid)
                     if(!db[this.specialId]) {
                         db[this.specialId] = {
+                            contentLength: JSON.stringify(postData).length,
+                            NDCAUTH: `sid=${data.sid}`
+                        }
+                        fs.writeFile(__dirname + "/utils/db.json", JSON.stringify(db), (err) => {
+                            if(err) console.log(err);
+                        });
+                    } else {
+                        db[this.specialId].contentLength = {
                             contentLength: JSON.stringify(postData).length,
                             NDCAUTH: `sid=${data.sid}`
                         }

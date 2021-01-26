@@ -11,13 +11,13 @@
             "warning": 199
         },
         "human": {
-            "ok": "success",
+            "ok": "ok",
             "danger": "danger",
             "warning": "warning"
         },
         "copyright": {
             "icon": "©",
-            "text": "wezacon.com"
+            "text": "https://github.com/amino-api"
         }
     }
 }
