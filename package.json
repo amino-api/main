@@ -1,6 +1,6 @@
 {
   "name": "aminoapps.js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "An api wrapper for aminoapps.com",
   "main": "inc.js",
   "scripts": {

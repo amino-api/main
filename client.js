@@ -4,10 +4,14 @@ const db = require('./utils/db.json');
 const fetch = require('node-fetch');
 const system = require('./system.json');
 const header = require('./utils/headers');
-
 const chalk = require('chalk');
+const pkg = require('./package.json');
+
+
 const deviceId = "01B592EF5658F82E1339B39AA893FF661D7E8B8F1D16227E396EF4B1BF60F33D25566A35AB1514DAB5";
 const apiUrl = system.api.url;
+const clientVersion = pkg.version;
+
 
 class Client {
     /**

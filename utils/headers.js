@@ -26,7 +26,6 @@ module.exports = function(data, specialId){
             "Content-Length": db[specialId].contentLength,
             "NDCAUTH": db[specialId].NDCAUTH
         }
-        console.log('AUTH:', headers)
     } else {
         headers = {
             "NDCDEVICEID": deviceId,
@@ -38,7 +37,6 @@ module.exports = function(data, specialId){
             "Accept-Encoding": "gzip",
             "Connection": "Keep-Alive"
         }
-        console.log(headers)
     }
 
 
