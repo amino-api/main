@@ -1,12 +1,10 @@
 const fs = require('fs');
 const db = require('./db.json');
-const deviceFile = require('../device.json');
+const deviceFile = require('../device.js');
 
 const deviceId = deviceFile.key;
 /**
- * 
  * @param {string} data Return data
- * @param {string} sid User login key
  * @param {string} specialId the previous defined special id by a user
  */
 

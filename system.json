@@ -4,6 +4,7 @@
     "api": {
         "url": "https://service.narvii.com/api/v1"
     },
+    "discord": "https://discord.gg/2pVKdFTcay",
     "strings": {
         "computer": {
             "ok": 200,

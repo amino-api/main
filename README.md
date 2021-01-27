@@ -1,5 +1,7 @@
 # aminoapps.js
 
+[Need help?](https://discord.gg/GWCyYThq2C)
+
 ### Docs
 - [Simple example](#simple-example)
 
