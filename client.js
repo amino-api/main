@@ -53,7 +53,7 @@ class Client {
         if(!r.ok) {
             throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j['api:message']}`))
         }
-        return await j.userProfile
+        return j.userProfile
     }
 
     /**
@@ -125,7 +125,6 @@ class Client {
      * @param {number} type The message type
      */
     async sendMessage(message, comId, chatId, type=0) {
-        if(!userId) throw new Error(`[${system.strings.computer.danger}] No userId inserted!`)
         if(!comId) throw new Error(`[${system.strings.computer.danger}] No comId inserted!`)
         if(!chatId) throw new Error(`[${system.strings.computer.danger}] No chatId inserted!`)
 
