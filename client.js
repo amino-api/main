@@ -1,42 +1,34 @@
-"use strict"; 
-const fs = require('fs');
-const db = require('./utils/db.json');
-const fetch = require('node-fetch');
-const system = require('./system.json');
-const header = require('./utils/headers');
-const error = require('./utils/error');
-const Shout = require('./utils/Shout');
-const chalk = require('chalk');
-const pkg = require('./package.json');
-const deviceFile = require('./device.js');
-const npmReg = 'http://registry.npmjs.org/' + pkg.name;
+"use strict" 
+const fs = require('fs')
+const db = require('./utils/db.json')
+const fetch = require('node-fetch')
+const system = require('./system.json')
+const header = require('./utils/headers')
+const error = require('./utils/error')
+const Shout = require('./utils/Shout')
+const chalk = require('chalk')
+const pkg = require('./package.json')
+const deviceFile = require('./device.js')
+const npmReg = 'http://registry.npmjs.org/' + pkg.name
 
 
-const deviceId = deviceFile.key;
-const apiUrl = system.api.url;
+const deviceId = deviceFile.key
+const apiUrl = system.api.url
 
 
 async function searchForVersion(){
-    try {
-        return new Promise(resolve => {
-            fetch(npmReg, {}).then(res => res.json()).then(data => {
-                // if(data["api:statuscode"] !== 0){
-                //     resolve(new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${data["api:message"]}`)))
-                // }
-                const liveVersion = data["dist-tags"].latest;
-                const currentVersion = pkg.version;
-                if(liveVersion !== currentVersion){
-                    Shout(`Update required!\nCurrent Version: ${currentVersion} New Version: ${liveVersion}\nUpdate by executing: npm i ${pkg.name}@${liveVersion}`)
-                }
-            }).catch((e) => {
-                error(e)
-            })
-        })
-    } catch(e) {
-        error(e)
+    const r = await fetch(npmReg, {})
+    const j = await r.json()
+    // if(!r.ok){
+    //      throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j["api:message"]}`))
+    // }
+    const liveVersion = j["dist-tags"].latest
+    const currentVersion = pkg.version
+    if(liveVersion !== currentVersion){
+        Shout(`Update required!\nCurrent Version: ${currentVersion} New Version: ${liveVersion}\nUpdate by executing: npm i ${pkg.name}@${liveVersion}`)
     }
 }
-searchForVersion();
+searchForVersion()
 
 
 class Client {
@@ -45,45 +37,23 @@ class Client {
      * @param {boolean} debug Enable debug mode.
      */
     constructor(specialId, debug){
-        this.specialId = specialId;
-        this.debug = debug;
+        this.specialId = specialId
+        this.debug = debug
     }
 
     /**
      * @param {string} uid The user uid you want to get the userprofile of.
      */
     
-    getUser(uid){
-        try {
-            let user = uid;
-            if(!user) resolve(new Error(chalk.red(`[${system.strings.computer.danger}] No userId inserted!`)));
+    async getUser(user){
+        if(!user) throw new Error(chalk.red(`[${system.strings.computer.danger}] No userId inserted!`))
 
-            const headersV1 = {
-                "NDCDEVICEID": deviceId,
-                "NDC-MSG-SIG": "AaauX/ZA2gM3ozqk1U5j6ek89SMu",
-                "Accept-Language": "en-US",
-                "Content-Type": "application/json; charset=utf-8",
-                "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 7.1; LG-UK495 Build/MRA58K; com.narvii.amino.master/3.3.33180)",
-                "Host": "service.narvii.com",
-                "Accept-Encoding": "gzip",
-                "Connection": "Keep-Alive"
-            }
-
-            return new Promise(resolve => {
-                fetch(`${apiUrl}/g/s/user-profile/${user}`, { 
-                    headers: headersV1
-                }).then(res => res.json()).then(data => {
-                    if(data["api:statuscode"] !== 0){
-                        resolve(new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${data["api:message"]}`)))
-                    }
-                    resolve(data.userProfile)
-                }).catch((e) => {
-                    error(e)
-                })
-            })
-        } catch(e) {
-            error(e)
+        const r = await fetch(`${apiUrl}/g/s/user-profile/${user}`, {headers: {"NDCDEVICEID": deviceId}})
+        const j = await r.json()
+        if(!r.ok) {
+            throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j['api:message']}`))
         }
+        return await j.userProfile
     }
 
     /**
@@ -91,168 +61,103 @@ class Client {
      * @param {string} password The account password
      */
 
-    login(email, password){
-        try {
-            const headersV1 = {
-                "NDCDEVICEID": deviceId,
-                "NDC-MSG-SIG": "AaauX/ZA2gM3ozqk1U5j6ek89SMu",
-                "Accept-Language": "en-US",
-                "Content-Type": "application/json; charset=utf-8",
-                "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 7.1; LG-UK495 Build/MRA58K; com.narvii.amino.master/3.3.33180)",
-                "Host": "service.narvii.com",
-                "Accept-Encoding": "gzip",
-                "Connection": "Keep-Alive"
-            }
-
-            const postData = {
-                "email": email,
-                "v": 2,
-                "secret": `0 ${password}`,
-                "deviceID": deviceId,
-                "clientType": 100,
-                "action": "normal",
-                "timestamp": Date.now() * 1000
-            }
-
-            return new Promise(resolve => {
-                if(!this.specialId) resolve(new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`You must define a specialId in the Client object!`)))
-                fetch(`${apiUrl}/g/s/auth/login`, { 
-                    method: "POST",
-                    headers: headersV1,
-                    body: JSON.stringify(postData)
-                }).then(res => res.json()).then(data => {
-                    if(data["api:statuscode"] !== 0){
-                        resolve(new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${data["api:message"]}`)))
-                    }
-                    header(JSON.stringify(postData), data.sid)
-                    if(!db[this.specialId]) {
-                        db[this.specialId] = {
-                            contentLength: JSON.stringify(postData).length,
-                            NDCAUTH: `sid=${data.sid}`,
-                            UUID: data.account.uid 
-                        }
-                        fs.writeFile(__dirname + "/utils/db.json", JSON.stringify(db), (err) => {
-                            if(err) console.log(err);
-                        });
-                    } else {
-                        db[this.specialId] = {
-                            contentLength: JSON.stringify(postData).length,
-                            NDCAUTH: `sid=${data.sid}`,
-                            UUID: data.account.uid
-                        }
-                        fs.writeFile(__dirname + "/utils/db.json", JSON.stringify(db), (err) => {
-                            if(err) console.log(err);
-                        });
-                    }
-                    resolve(data)
-                }).catch((e) => {
-                    error(e)
-                })
-            })
-        } catch(e) {
-            return console.log(chalk.red(`[${system.name}|ERROR]`, e))
+    async login(email, password){
+        const postData = {
+            "email": email,
+            "secret": `0 ${password}`,
+            "deviceID": deviceId
         }
+
+        if(!email) throw new Error(`[${system.strings.computer.danger}] No email inserted!`)
+        if(!password) throw new Error(`[${system.strings.computer.danger}] No password inserted!`)
+        if(!this.specialId) throw new Error(`[${system.name}] `) + chalk.red(`You must define a specialId in the Client object!`)
+
+        const r = await fetch(`${apiUrl}/g/s/auth/login`, { 
+                        method: "POST",
+                        headers: {"NDCDEVICEID": deviceId},
+                        body: JSON.stringify(postData)
+                    })
+        const j = await r.json()                
+
+        if(!r.ok){
+            throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j["api:message"]}`))
+        }
+
+        header(JSON.stringify(postData), j.sid)
+        db[this.specialId] = {
+            contentLength: JSON.stringify(postData).length,
+            NDCAUTH: `sid=${j.sid}`,
+            UUID: j.account.uid 
+        }
+        fs.writeFile(`${__dirname}/utils/db.json`, JSON.stringify(db), err => {if(err) console.log(err)})
+        return j                
     }
-    logout(){
-        try {
-            const headersV1 = header(null, this.specialId);
 
-            const postData = {
-                "deviceID": deviceId,
-                "clientType": 100,
-                "timestamp": Date.now() * 1000
-            }
+    async logout(){
+        if(!this.specialId) throw new Error(`[${system.name}] `) + chalk.red(`You must define a specialId in the Client object!`)
 
-            return new Promise(resolve => {
-                if(!this.specialId) resolve(new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`You must define a specialId in the Client object!`)))
-                fetch(`${apiUrl}/g/s/auth/logout`, { 
-                    method: "POST",
-                    headers: headersV1,
-                    body: JSON.stringify(postData)
-                }).then(res => res.json()).then(data => {
-                    if(data["api:statuscode"] !== 0){
-                        resolve(new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${data["api:message"]}`)))
-                    }
-                    header(JSON.stringify(postData), data.sid)
-                    if(db[this.specialId]) {
-                        delete db[this.specialId]
-                        fs.writeFile(__dirname + "/utils/db.json", JSON.stringify(db), (err) => {
-                            if(err) console.log(err);
-                        });
-                    } else {
-                        resolve(error('No local database found!\nLogin first!'))
-                    }
-                    resolve(data)
-                }).catch((e) => {
-                    error(e)
-                })
-            })
-        } catch(e) {
-            return console.log(chalk.greenBright(`[${system.name}|ERROR]`, e))
+        const r = await fetch(`${apiUrl}/g/s/auth/logout`, { 
+                        method: "POST",
+                        headers: {"NDCDEVICEID": deviceId},
+                        body: JSON.stringify({"NDCDEVICEID": deviceId})
+                    })
+
+        const j = await r.json()                
+
+        if(!r.ok){
+            throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j["api:message"]}`))
         }
+        
+        header(JSON.stringify({"NDCDEVICEID": deviceId}), j.sid)
+        if(db[this.specialId]) {
+            delete db[this.specialId]
+            fs.writeFile(`${__dirname}/utils/db.json`, JSON.stringify(db), err => {if(err) console.log(err)})
+        } else {
+            throw new Error('No local database found!\nLogin first!')
+        }
+        return j
     }
 
     /**
      * @param {string} message The message content
-     * @param {string} cid Community id
+     * @param {string} comId Community id
      * @param {string} chatId Chat id
      * @param {number} type The message type
      */
-    sendMessage(message, cid, chatId, type){
-        try {
-            const headersV1 = header(null, this.specialId);
+    async sendMessage(message, comId, chatId, type=0) {
+        if(!userId) throw new Error(`[${system.strings.computer.danger}] No userId inserted!`)
+        if(!comId) throw new Error(`[${system.strings.computer.danger}] No comId inserted!`)
+        if(!chatId) throw new Error(`[${system.strings.computer.danger}] No chatId inserted!`)
 
-            const postData = {
-                "type": type,
-                "content": message,
-                "clientRefId": 360979903,
-                "attachedObject": null,
-                "timestamp": Date.now() * 1000
-            }
-            // console.log(headersV1)
-            return new Promise(resolve => {
-                fetch(`${apiUrl}/x${cid}/s/chat/thread/${chatId}/message`, { 
-                    method: "POST",
-                    headers: headersV1,
-                    body: JSON.stringify(postData)
-                }).then(res => res.json()).then(data => {
-                    if(data["api:statuscode"] !== 0){
-                        resolve(new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${data["api:message"]}`)))
-                    }
-                    resolve(data)
-                }).catch((e) => {
-                    error(e)
-                })
-            })
-        } catch(e) {
-            return console.log(chalk.red(`[${system.name}|ERROR]`, e))
+        const r = await fetch(`${apiUrl}/x${comId}/s/chat/thread/${chatId}/message`, { 
+                        method: "POST",
+                        headers: header(null, this.specialId),
+                        body: JSON.stringify({"type": type, "content": message})
+                    })
+        const j = await r.json()                
+
+        if(!r.ok){
+            throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j["api:message"]}`))
         }
+        return j
     }
 
     /**
      * @param {string} userId The user UUID
      */
-    follow(userId){
-        try {
-            const headersV1 = header(null, this.specialId);
+    async follow(userId){
+        if(!userId) throw new Error(`[${system.strings.computer.danger}] No userId inserted!`)
+        if(!this.specialId) throw new Error(`[${system.name}] `) + chalk.red(`You must define a specialId in the Client object!`)
 
-            // console.log(headersV1)
-            return new Promise(resolve => {
-                fetch(`${apiUrl}/g/s/user-profile/${userId}/member`, { 
-                    method: "POST",
-                    headers: headersV1
-                }).then(res => res.json()).then(data => {
-                    if(data["api:statuscode"] !== 0){
-                        resolve(error(data["api:message"]));
-                    }
-                    resolve(data)
-                }).catch((e) => {
-                    error(e)
-                })
-            })
-        } catch(e) {
-            return console.log(chalk.red(`[${system.name}|ERROR]`, e))
+        const r = await fetch(`${apiUrl}/g/s/user-profile/${userId}/member`, { 
+                        method: "POST",
+                        headers: header(null, this.specialId)
+                    })
+        const j = await r.json() 
+        if(!r.ok){
+            throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j["api:message"]}`))
         }
+        return j
     }
 }
 
@@ -262,37 +167,29 @@ class SubClient {
      * @param {string} CommunityId The communityId, do not include the 'x'!
      */
     constructor(ClientObject, CommunityId){
-        this.ClientMain = ClientObject;
-        this.CID = CommunityId;
-        this.specialId = ClientObject.specialId;
+        this.ClientMain = ClientObject
+        this.CID = CommunityId
+        this.specialId = ClientObject.specialId
     }
 
     /**
      * 
      * @param {string} userId The userId of the user
      */
-    getUser(userId){
-        try {
-            const headersV1 = header(null, this.specialId)
-            return new Promise(async resolve => {
-                fetch(`${apiUrl}/x${this.CID}/s/user-profile/${userId}`, { 
-                    headers: headersV1
-                }).then(res => res.json()).then(data => {
-                    console.log(data["api:statuscode"])
-                    if(data["api:statuscode"] !== 0){
-                        resolve(error(data["api:message"]))
-                    }
-                    resolve(data)
-                }).catch((e) => {
-                    error(e)
-                })
-            })
-        } catch(e) {
-            error(e)
+    async getUser(userId){
+        if(!userId) throw new Error(`[${system.strings.computer.danger}] No userId inserted!`)
+        if(!this.specialId) throw new Error(`[${system.name}] `) + chalk.red(`You must define a specialId in the Client object!`)
+
+        const r = await fetch(`${apiUrl}/x${this.CID}/s/user-profile/${userId}`, { 
+                            headers: header(null, this.specialId)
+                        })
+        const j = await r.json() 
+        if(!r.ok){
+            throw new Error(chalk.greenBright(`[${system.name}] `) + chalk.red(`${j["api:message"]}`))
         }
+        return j
     }
-    
 }
 
 
-module.exports = {Client, SubClient};
+module.exports = {Client, SubClient}
