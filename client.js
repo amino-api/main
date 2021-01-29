@@ -109,12 +109,13 @@ class Client {
         }
         
         header(JSON.stringify({"NDCDEVICEID": deviceId}), j.sid)
-        if(db[this.specialId]) {
-            delete db[this.specialId]
-            fs.writeFile(`${__dirname}/utils/db.json`, JSON.stringify(db), err => {if(err) console.log(err)})
-        } else {
+        if(!db[this.specialId]) {
             throw new Error('No local database found!\nLogin first!')
         }
+        
+        delete db[this.specialId]
+        fs.writeFile(`${__dirname}/utils/db.json`, JSON.stringify(db), err => {if(err) console.log(err)})
+
         return j
     }
 
